@@ -110,18 +110,16 @@ def _parse_option(
     cfg_opt_name: str,
     opt: str | None,
 ) -> list[str]:
-    # specified on commandline: use that
     if opt is not None:
         return utils.parse_comma_separated_list(opt)
+    # ideally this would reuse our config parsing framework but we need to
+    # parse this from preliminary options before plugins are enabled
+    for opt_name in (cfg_opt_name, cfg_opt_name.replace("_", "-")):
+        val = cfg.get("flake8", opt_name, fallback=None)
+        if val is not None:
+            return utils.parse_comma_separated_list(val)
     else:
-        # ideally this would reuse our config parsing framework but we need to
-        # parse this from preliminary options before plugins are enabled
-        for opt_name in (cfg_opt_name, cfg_opt_name.replace("_", "-")):
-            val = cfg.get("flake8", opt_name, fallback=None)
-            if val is not None:
-                return utils.parse_comma_separated_list(val)
-        else:
-            return []
+        return []
 
 
 def parse_plugin_options(
@@ -181,7 +179,7 @@ def _find_importlib_plugins() -> Generator[Plugin, None, None]:
         eps = dist.entry_points
 
         # perf: skip parsing `.metadata` (slow) if no entry points match
-        if not any(ep.group in FLAKE8_GROUPS for ep in eps):
+        if all(ep.group not in FLAKE8_GROUPS for ep in eps):
             continue
 
         # assigned to prevent continual reparsing
@@ -233,9 +231,7 @@ def _check_required_plugins(
         utils.normalize_pypi_name(plugin.package) for plugin in plugins
     }
     expected_names = {utils.normalize_pypi_name(name) for name in expected}
-    missing_plugins = expected_names - plugin_names
-
-    if missing_plugins:
+    if missing_plugins := expected_names - plugin_names:
         raise ExecutionError(
             f"required plugins were not installed!\n"
             f"- installed: {', '.join(sorted(plugin_names))}\n"

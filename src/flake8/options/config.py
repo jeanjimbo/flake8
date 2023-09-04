@@ -43,11 +43,10 @@ def _find_config_file(path: str) -> str | None:
 
         new_path = os.path.dirname(path)
         new_dir_stat = _stat_key(new_path)
-        if new_dir_stat == dir_stat or new_dir_stat == home_stat:
+        if new_dir_stat in [dir_stat, home_stat]:
             break
-        else:
-            path = new_path
-            dir_stat = new_dir_stat
+        path = new_path
+        dir_stat = new_dir_stat
 
     # did not find any configuration file
     return None
@@ -75,15 +74,15 @@ def load_config(
         config = _find_config_file(pwd)
 
     cfg = configparser.RawConfigParser()
-    if config is not None:
-        if not cfg.read(config, encoding="UTF-8"):
-            raise exceptions.ExecutionError(
-                f"The specified config file does not exist: {config}"
-            )
-        cfg_dir = os.path.dirname(config)
-    else:
+    if config is None:
         cfg_dir = pwd
 
+    elif not cfg.read(config, encoding="UTF-8"):
+        raise exceptions.ExecutionError(
+            f"The specified config file does not exist: {config}"
+        )
+    else:
+        cfg_dir = os.path.dirname(config)
     # TODO: remove this and replace it with configuration modifying plugins
     # read the additional configs afterwards
     for filename in extra:

@@ -166,10 +166,9 @@ class FlakesChecker(pyflakes.checker.Checker):
                 excluded_files.append(excluded_file)
         cls.exclude_from_doctest = utils.normalize_paths(excluded_files)
 
-        inc_exc = set(cls.include_in_doctest).intersection(
+        if inc_exc := set(cls.include_in_doctest).intersection(
             cls.exclude_from_doctest
-        )
-        if inc_exc:
+        ):
             raise ValueError(
                 f"{inc_exc!r} was specified in both the "
                 f"include-in-doctest and exclude-from-doctest "
@@ -184,9 +183,6 @@ class FlakesChecker(pyflakes.checker.Checker):
             yield (
                 message.lineno,
                 col,
-                "{} {}".format(
-                    FLAKE8_PYFLAKES_CODES.get(type(message).__name__, "F999"),
-                    message.message % message.message_args,
-                ),
+                f'{FLAKE8_PYFLAKES_CODES.get(type(message).__name__, "F999")} {message.message % message.message_args}',
                 message.__class__,
             )

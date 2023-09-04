@@ -351,7 +351,7 @@ def test_duplicate_dists(flake8_dist):
 
 def test_find_local_plugins_nothing():
     cfg = configparser.RawConfigParser()
-    assert set(finder._find_local_plugins(cfg)) == set()
+    assert not set(finder._find_local_plugins(cfg))
 
 
 @pytest.fixture

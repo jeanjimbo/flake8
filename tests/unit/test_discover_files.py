@@ -99,7 +99,7 @@ def test_filenames_from_predicate_applies_to_initial_arg(tmp_path):
     """Test that the predicate is also applied to the passed argument."""
     fname = str(tmp_path.joinpath("f.py"))
     ret = tuple(_filenames_from(fname, predicate=lambda _: True))
-    assert ret == ()
+    assert not ret
 
 
 def test_filenames_from_predicate_applies_to_dirname(tmp_path):

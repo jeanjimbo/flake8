@@ -159,9 +159,8 @@ class Manager:
 
     def _handle_results(self, filename: str, results: Results) -> int:
         style_guide = self.style_guide
-        reported_results_count = 0
-        for error_code, line_number, column, text, physical_line in results:
-            reported_results_count += style_guide.handle_error(
+        return sum(
+            style_guide.handle_error(
                 code=error_code,
                 filename=filename,
                 line_number=line_number,
@@ -169,7 +168,8 @@ class Manager:
                 text=text,
                 physical_line=physical_line,
             )
-        return reported_results_count
+            for error_code, line_number, column, text, physical_line in results
+        )
 
     def report(self) -> tuple[int, int]:
         """Report all of the errors found in the managed file checkers.
@@ -404,8 +404,7 @@ class FileChecker:
                 row_offset = len(lines) - 1
                 logical_line = lines[0]
                 logical_line_length = len(logical_line)
-                if column > logical_line_length:
-                    column = logical_line_length
+                column = min(column, logical_line_length)
             row -= row_offset
             column -= column_offset
         return row, column
@@ -470,11 +469,8 @@ class FileChecker:
             if result is not None:
                 # This is a single result if first element is an int
                 column_offset = None
-                try:
+                with contextlib.suppress(IndexError, TypeError):
                     column_offset = result[0]
-                except (IndexError, TypeError):
-                    pass
-
                 if isinstance(column_offset, int):
                     # If we only have a single result, convert to a collection
                     result = (result,)
@@ -502,7 +498,7 @@ class FileChecker:
         for token in file_processor.generate_tokens():
             statistics["tokens"] += 1
             self.check_physical_eol(token, prev_physical)
-            token_type, text = token[0:2]
+            token_type, text = token[:2]
             if token_type == tokenize.OP:
                 parens = processor.count_parentheses(parens, text)
             elif parens == 0:

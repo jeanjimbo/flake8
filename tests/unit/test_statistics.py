@@ -78,7 +78,7 @@ def test_statistic_increment():
 def test_recording_statistics():
     """Verify that we appropriately create a new Statistic and store it."""
     aggregator = stats.Statistics()
-    assert list(aggregator.statistics_for("E")) == []
+    assert not list(aggregator.statistics_for("E"))
     aggregator.record(make_error())
     storage = aggregator._store
     for key, value in storage.items():
@@ -91,7 +91,7 @@ def test_recording_statistics():
 def test_statistics_for_single_record():
     """Show we can retrieve the only statistic recorded."""
     aggregator = stats.Statistics()
-    assert list(aggregator.statistics_for("E")) == []
+    assert not list(aggregator.statistics_for("E"))
     aggregator.record(make_error())
     statistics = list(aggregator.statistics_for("E"))
     assert len(statistics) == 1
@@ -101,7 +101,7 @@ def test_statistics_for_single_record():
 def test_statistics_for_filters_by_filename():
     """Show we can retrieve the only statistic recorded."""
     aggregator = stats.Statistics()
-    assert list(aggregator.statistics_for("E")) == []
+    assert not list(aggregator.statistics_for("E"))
     aggregator.record(make_error())
     aggregator.record(make_error(filename="example.py"))
 

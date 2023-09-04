@@ -155,8 +155,7 @@ class FileProcessor:
         (start_row, start_col) = mapping[0][1]
         start_line = self.lines[start_row - 1]
         self.indent_level = expand_indent(start_line[:start_col])
-        if self.blank_before < self.blank_lines:
-            self.blank_before = self.blank_lines
+        self.blank_before = max(self.blank_before, self.blank_lines)
 
     def update_checker_state_for(self, plugin: LoadedPlugin) -> None:
         """Update the checker_state attribute for the plugin."""
@@ -296,7 +295,7 @@ class FileProcessor:
                     max_line = max(max_line, e_line)
 
                     if tp in (tokenize.NL, tokenize.NEWLINE):
-                        ret.update(self._noqa_line_range(min_line, max_line))
+                        ret |= self._noqa_line_range(min_line, max_line)
 
                         min_line = len(self.lines) + 2
                         max_line = -1
@@ -326,12 +325,10 @@ class FileProcessor:
 
     def read_lines(self) -> list[str]:
         """Read the lines for this file checker."""
-        if self.filename == "-":
-            self.filename = self.options.stdin_display_name or "stdin"
-            lines = self.read_lines_from_stdin()
-        else:
-            lines = self.read_lines_from_filename()
-        return lines
+        if self.filename != "-":
+            return self.read_lines_from_filename()
+        self.filename = self.options.stdin_display_name or "stdin"
+        return self.read_lines_from_stdin()
 
     def read_lines_from_filename(self) -> list[str]:
         """Read the lines for a file."""

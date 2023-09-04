@@ -60,10 +60,7 @@ class Application:
         if self.catastrophic_failure:
             return 1
         assert self.options is not None
-        if self.options.exit_zero:
-            return 0
-        else:
-            return int(self.result_count > 0)
+        return 0 if self.options.exit_zero else int(self.result_count > 0)
 
     def make_formatter(self) -> None:
         """Initialize a formatter based on the parsed options."""
@@ -102,7 +99,7 @@ class Application:
         try:
             self.file_checker_manager.run()
         except exceptions.PluginExecutionFailed as plugin_failed:
-            print(str(plugin_failed))
+            print(plugin_failed)
             print("Run flake8 with greater verbosity to see more details")
             self.catastrophic_failure = True
         LOG.info("Finished running")

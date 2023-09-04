@@ -12,10 +12,7 @@ import pycodestyle
 
 
 def _too_long(s: str) -> str:
-    if len(s) >= 80:
-        return f"{s}  # noqa: E501"
-    else:
-        return s
+    return f"{s}  # noqa: E501" if len(s) >= 80 else s
 
 
 class Call(NamedTuple):
@@ -27,13 +24,12 @@ class Call(NamedTuple):
         params_s = ", ".join(self.params)
         if self.is_generator:
             return _too_long(f"    yield from _{self.name}({params_s})")
-        else:
-            lines = (
-                _too_long(f"    ret = _{self.name}({params_s})"),
-                "    if ret is not None:",
-                "        yield ret",
-            )
-            return "\n".join(lines)
+        lines = (
+            _too_long(f"    ret = _{self.name}({params_s})"),
+            "    if ret is not None:",
+            "        yield ret",
+        )
+        return "\n".join(lines)
 
     @classmethod
     def from_func(cls, func: Callable[..., Any]) -> Call:

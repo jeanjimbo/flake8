@@ -164,17 +164,14 @@ class DecisionEngine:
         elif selected is Ignored.Implicitly and ignored is Selected.Implicitly:
             return Decision.Ignored
         elif (
-            selected is Selected.Explicitly and ignored is Ignored.Explicitly
-        ) or (
-            selected is Selected.Implicitly and ignored is Ignored.Implicitly
+            selected is Selected.Explicitly
+            or selected is Selected.Implicitly
+            and ignored is Ignored.Implicitly
         ):
             # we only get here if it was in both lists: longest prefix wins
             select = next(s for s in self.selected if code.startswith(s))
             ignore = next(s for s in self.ignored if code.startswith(s))
-            if len(select) > len(ignore):
-                return Decision.Selected
-            else:
-                return Decision.Ignored
+            return Decision.Selected if len(select) > len(ignore) else Decision.Ignored
         else:
             raise AssertionError(f"unreachable {code} {selected} {ignored}")
 
